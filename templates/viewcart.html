@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Cart</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-container">
+  <div class="page-box">
+    <h2>Your Cart</h2>
+
+    {% if items %}
+      <table style="width:100%; text-align:left; color:white;">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Weight</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ item.item }}</td>
+            <td>{{ item.weight }}g</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <br>
+      <a href="{{ url_for('order') }}" class="btn">Order Now</a>
+    {% else %}
+      <p style="color:white;">Your cart is empty.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+  </div>
+</body>
+</html>

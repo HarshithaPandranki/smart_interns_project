@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="welcome-bg">
+  <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Pickle Logo" style="height: 180px; width: 200px; margin-top: 40px; display: block; margin-left: auto; margin-right: auto;">
+  
+  <h1>Welcome to MOMade Pickles</h1>
+  <p>Are you ready to taste some <strong>delicious</strong> and <strong>healthy</strong> pickles?</p>
+
+  <div class="btn-container">
+    <a href="/home" class="btn">Go to Home</a>
+  </div>
+</body>
+</html>

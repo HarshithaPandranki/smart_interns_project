@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home - MOMade Pickles</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fff8dc;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #ff6f00;
+      padding: 1rem 2rem;
+      color: white;
+    }
+
+    nav .brand {
+      display: flex;
+      align-items: center;
+    }
+
+    nav .brand img {
+      height: 50px;
+      margin-right: 10px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      width: 250px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      overflow: hidden;
+      text-align: center;
+      padding-bottom: 1rem;
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .card h3 {
+      color: #ff6f00;
+      margin: 10px 0 5px;
+    }
+
+    .card select {
+      margin: 5px 0;
+      padding: 5px;
+    }
+
+    .card p.price {
+      font-weight: bold;
+      color: #222;
+    }
+
+    .btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #ff6f00;
+    }
+  </style>
+</head>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="brand">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo">
+      <h2>MOMade Pickles</h2>
+    </div>
+  <ul>
+  <li><a href="{{ url_for('about') }}">About</a></li>
+  <li><a href="{{ url_for('contact') }}">Contact</a></li>
+  <li><a href="{{ url_for('reviews') }}">Reviews</a></li>
+  <li><a href="/cart">View Cart</a></li>
+  <li><a href="/login">Login</a></li>
+  <li><a href="/register">Register</a></li>
+</ul>
+
+
+  </nav>
+
+  <!-- Products Section -->
+  <section class="products">
+    {% set products = [
+      {'name': 'Mango Pickle', 'img': 'mango.jpg', 'base_price': 100},
+      {'name': 'Lemon Pickle', 'img': 'lemon.jpg', 'base_price': 90},
+       {'name': 'Tomato Pickle', 'img': 'tomato.jpg', 'base_price': 95},
+      {'name': 'Mixed Pickle', 'img': 'mixed.jpg', 'base_price': 110},
+       {'name': 'Chakli', 'img': 'chakli.jpg', 'base_price': 85},
+      {'name': 'Banana Chips', 'img': 'banana.jpg', 'base_price': 80},
+      {'name': 'Murukku', 'img': 'janthikalu.jpg', 'base_price': 70},
+      {'name': 'Kara Sev', 'img': 'karampusa.jpg', 'base_price': 75}
+    ] %}
+
+    {% for item in products %}
+    <div class="card">
+      <img src="{{ url_for('static', filename='images/' ~ item.img) }}" alt="{{ item.name }}">
+      <h3>{{ item.name }}</h3>
+
+    <select onchange="updatePrice(this, '{{ loop.index0 }}')">
+  <option value="250">250g</option>
+  <option value="500">500g</option>
+  <option value="1000">1000g</option>
+</select>
+
+
+      <p class="price" id="price-{{ loop.index0 }}">₹{{ item.base_price }}</p>
+      <form method="POST" action="/cart">
+  <input type="hidden" name="item" value="{{ item.name }}">
+  <input type="hidden" name="weight" id="weight-{{ loop.index0 }}" value="250">
+  <input type="number" name="quantity" min="1" value="1" style="width: 50px; margin-top: 5px;">
+  <button type="submit" class="btn">Add to Cart</button>
+</form>
+
+    </div>
+    {% endfor %}
+  </section>
+
+</body>
+</html>

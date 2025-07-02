@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Reviews</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+<body class="page-container">
+  <div class="page-box">
+    <h2>What Our Customers Say</h2>
+
+    <!-- Static Dummy Reviews -->
+    <ul>
+      <li><strong>Ramesh K:</strong> "Absolutely delicious mango pickle! Tastes just like home."</li>
+      <li><strong>Sneha R:</strong> "Banana chips were fresh and crisp. A perfect snack!"</li>
+      <li><strong>Arjun T:</strong> "Loved the packaging and the flavor. Will reorder soon!"</li>
+    </ul>
+
+    <!-- Live Reviews from DynamoDB -->
+    <ul>
+      {% for review in reviews %}
+        <li><strong>{{ review.name }}:</strong> {{ review.message }}</li>
+      {% else %}
+        <li>No reviews yet. Be the first to leave one!</li>
+      {% endfor %}
+    </ul>
+
+    <!-- Submit Review Form -->
+    <div class="review-form">
+      <h3 style="color:#ffcc66">Leave a Review</h3>
+      <form method="POST" action="{{ url_for('reviews') }}">
+        <input type="text" name="name" placeholder="Your Name" required><br><br>
+        <input type="email" name="email" placeholder="Your Email" required><br><br>
+        <textarea name="message" rows="4" placeholder="Write your review here..." required></textarea><br>
+        <button type="submit">Submit Review</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Confirmation</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-container">
+  <div class="page-box">
+    <h2>Confirm Your Order</h2>
+
+    <!-- Display Cart Items -->
+    <ul style="color:white; font-size: 1.1rem;">
+      {% for item in items %}
+        <li>{{ item.quantity }} x {{ item.item }} ({{ item.weight }}g)</li>
+      {% endfor %}
+    </ul>
+
+    <!-- Order Form -->
+    <form method="POST">
+      <h3 style="color:#ffcc66;">Delivery Address</h3>
+      <textarea name="address" required placeholder="Enter your delivery address here..." rows="4"
+                style="width: 100%; border-radius: 6px; padding: 10px;"></textarea>
+
+      <br><br>
+      <p style="color:white;"><strong>Payment Method:</strong> Cash on Delivery</p>
+      <button type="submit" class="btn">Confirm Order</button>
+    </form>
+  </div>
+</body>
+</html>
