@@ -3,17 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome</title>
+  <title>Welcome | MOMade Pickles</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="welcome-bg">
-  <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Pickle Logo" style="height: 180px; width: 200px; margin-top: 40px; display: block; margin-left: auto; margin-right: auto;">
-  
-  <h1>Welcome to MOMade Pickles</h1>
-  <p>Are you ready to taste some <strong>delicious</strong> and <strong>healthy</strong> pickles?</p>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-image: url('{{ url_for('static', filename='images/bgimage.jpg') }}');
+      background-size: cover;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
 
-  <div class="btn-container">
-    <a href="/home" class="btn">Go to Home</a>
-  </div>
+    .logo {
+      width: 150px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      background-color: #ffa500;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: #e69500;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="MOMade Logo" class="logo" />
+  <h1>Welcome to MOMade Pickles</h1>
+  <a href="{{ url_for('home') }}" class="btn">Go to Home</a>
+
 </body>
 </html>

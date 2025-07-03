@@ -1,167 +1,234 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from flask_cors import CORS
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import boto3
 import uuid
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Load environment variables from .env
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'
-CORS(app)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# AWS DynamoDB and SNS setup
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-sns = boto3.client('sns', region_name='us-east-1')
-
-user_table = dynamodb.Table('Users')
-review_table = dynamodb.Table('Reviews')
+# Initialize DynamoDB
+region_name = 'ap-south-1'
+dynamodb = boto3.resource('dynamodb', region_name=region_name)
 cart_table = dynamodb.Table('Cart')
+reviews_table = dynamodb.Table('Reviews')
+users_table = dynamodb.Table('Users')
 
-# Replace with your SNS Topic ARN
-order_topic_arn = 'arn:aws:sns:us-east-1:xxxxxxxxxxxx:OrderNotifications'
+# Function to send order confirmation email
+def send_confirmation_email(to_email, address):
+    from_email = os.getenv("GMAIL_USER")
+    password = os.getenv("GMAIL_APP_PASSWORD")
 
-def is_logged_in():
-    return 'user' in session
+    subject = "MOMade Pickles - Order Confirmation"
+    body = f"""
+    Hello,
 
-@app.route('/')
-def welcome():
-    return render_template('welcome.html')
+    Thank you for your order from MOMade Pickles!
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+    Your items will be delivered to the following address:
+    {address}
+
+    Payment Mode: Cash on Delivery (COD)
+
+    We appreciate your support!
+
+    Regards,
+    MOMade Pickles Team
+    """
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(from_email, password)
+            server.send_message(msg)
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+# ------------------------ Add to Cart Route ------------------------
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    if 'email' not in session:
+        flash("Please login first.")
+        return redirect(url_for('login'))
+
+    email = session['email']
+    item_name = request.form.get('name')
+    weight = int(request.form.get('weight'))
+    quantity = int(request.form.get('quantity'))
+
+    price_per_unit = {
+        250: 100,
+        500: 180,
+        1000: 340
+    }
+
+    price = price_per_unit.get(weight, 0)
+    total = price * quantity
+
+    item_id = str(uuid.uuid4())
+
+    cart_table.put_item(
+        Item={
+            'email': email,
+            'item_id': item_id,
+            'item_name': item_name,
+            'weight': weight,
+            'quantity': quantity,
+            'price': price,
+            'total': total,
+            'timestamp': datetime.now().isoformat()
+        }
+    )
+
+    flash("Item added to cart!")
+    return redirect(url_for('home'))
+
+# ------------------------ View Cart Route ------------------------
+@app.route('/viewcart')
+def view_cart():
+    if 'email' not in session:
+        flash("Please login to view your cart.")
+        return redirect(url_for('login'))
+
+    email = session['email']
+    response = cart_table.query(
+        KeyConditionExpression=boto3.dynamodb.conditions.Key('email').eq(email)
+    )
+    cart_items = response.get('Items', [])
+
+    return render_template('viewcart.html', cart=cart_items)
+
+# ------------------------ Order Route ------------------------
+@app.route('/order', methods=['GET', 'POST'])
+def order():
+    if 'email' not in session:
+        flash("Please login to place an order.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        try:
-            response = user_table.get_item(Key={'email': email})
-            user = response.get('Item')
-            if user and user['password'] == password:
-                session['user'] = user['name']
-                session['email'] = user['email']
-                return redirect(url_for('home'))
-            else:
-                flash("Invalid credentials")
-        except Exception as e:
-            flash("Login error: " + str(e))
-    return render_template('login.html')
+        email = session['email']
+        address = request.form.get('address')
 
+        response = cart_table.query(
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('email').eq(email)
+        )
+        items = response.get('Items', [])
+
+        for item in items:
+            cart_table.delete_item(
+                Key={
+                    'email': email,
+                    'item_id': item['item_id']
+                }
+            )
+
+        send_confirmation_email(email, address)
+
+        flash("Order placed successfully! (COD)")
+        return redirect(url_for('home'))
+
+    return render_template('order.html')
+
+# ------------------------ Review Route ------------------------
+@app.route('/reviews', methods=['GET', 'POST'])
+def reviews():
+    if request.method == 'POST':
+        if 'email' not in session:
+            flash("Please login to write a review.")
+            return redirect(url_for('login'))
+
+        name = request.form.get('name')
+        message = request.form.get('message')
+        email = session['email']
+
+        reviews_table.put_item(
+            Item={
+                'email': email,
+                'timestamp': datetime.now().isoformat(),
+                'name': name,
+                'message': message
+            }
+        )
+        flash("Thank you for your feedback!")
+        return redirect(url_for('reviews'))
+
+    dummy_reviews = [
+        {'name': 'Akhila', 'message': 'Loved the mango pickle! Tastes just like homemade.'},
+        {'name': 'Sai', 'message': 'Snacks are super fresh and crunchy. Must try!'},
+        {'name': 'Pooja', 'message': 'Excellent quality and packaging. Will order again.'}
+    ]
+
+    return render_template('reviews.html', reviews=dummy_reviews)
+
+# ------------------------ Register Route ------------------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        phone = request.form['phone']
-        password = request.form['password']
-        try:
-            if 'Item' in user_table.get_item(Key={'email': email}):
-                flash("Email already registered.")
-                return redirect(url_for('register'))
-            user_table.put_item(Item={
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+
+        users_table.put_item(
+            Item={
                 'email': email,
                 'name': name,
                 'phone': phone,
                 'password': password
-            })
-            session['user'] = name
-            session['email'] = email
-            return redirect(url_for('home'))
-        except Exception as e:
-            flash("Registration error: " + str(e))
+            }
+        )
+        flash("Registration successful! Please login.")
+        return redirect(url_for('login'))
+
     return render_template('register.html')
 
-@app.route('/home', methods=['GET', 'POST'])
+# ------------------------ Login Route ------------------------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        response = users_table.get_item(Key={'email': email})
+        user = response.get('Item')
+
+        if user and user['password'] == password:
+            session['email'] = email
+            flash("Login successful!")
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid credentials. Please try again.")
+
+    return render_template('login.html')
+
+# ------------------------ Dummy Routes ------------------------
+@app.route('/')
+def welcome():
+    return render_template('welcome.html')
+
+@app.route('/home')
 def home():
-    return render_template('home.html', user=session.get('user'))
-
-@app.route('/cart', methods=['GET', 'POST'])
-def cart():
-    email = session.get('email')
-    if not email:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        item = request.form['item']
-        weight = request.form['weight']
-        quantity = int(request.form['quantity'])
-        cart_table.put_item(Item={
-            'id': str(uuid.uuid4()),
-            'email': email,
-            'item': item,
-            'weight': weight,
-            'quantity': quantity,
-            'timestamp': str(datetime.now())
-        })
-        flash("Item added to cart.")
-    response = cart_table.scan()
-    items = [i for i in response['Items'] if i['email'] == email]
-    return render_template('viewcart.html', items=items)
-
-@app.route('/order', methods=['GET', 'POST'])
-def order():
-    email = session.get('email')
-    name = session.get('user')
-    if not email:
-        return redirect(url_for('login'))
-
-    response = cart_table.scan()
-    items = [i for i in response['Items'] if i['email'] == email]
-
-    if request.method == 'POST':
-        address = request.form['address']
-        message = f"Order by {name} ({email})\nAddress: {address}\n\nItems:\n"
-        for item in items:
-            message += f"{item['quantity']} x {item['item']} ({item['weight']}g)\n"
-
-        try:
-            sns.publish(
-                TopicArn=order_topic_arn,
-                Message=message,
-                Subject='New Order from MOMade Pickles'
-            )
-        except Exception as e:
-            flash("SNS Error: " + str(e))
-
-        flash("Order placed successfully!")
-        return redirect(url_for('home'))
-
-    return render_template('order.html', items=items)
-
-@app.route('/reviews', methods=['GET', 'POST'])
-def reviews():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        message = request.form['message']
-        review_table.put_item(Item={
-            'id': str(uuid.uuid4()),
-            'name': name,
-            'email': email,
-            'message': message
-        })
-        flash("Review submitted!")
-    reviews = review_table.scan().get('Items', [])
-    return render_template('reviews.html', reviews=reviews)
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
+    return render_template('home.html')
 
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash("Logged out.")
-    return redirect(url_for('welcome'))
-
-# Error Handlers
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html', is_logged_in=is_logged_in()), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    return render_template('500.html', is_logged_in=is_logged_in()), 500
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

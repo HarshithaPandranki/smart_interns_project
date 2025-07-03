@@ -2,30 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Order Confirmation</title>
+  <title>Place Order | MOMade Pickles</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fffaf0;
+      padding: 40px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #fff8e1;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .readonly-option {
+      background-color: #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      background-color: green;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: darkgreen;
+    }
+  </style>
 </head>
-<body class="page-container">
-  <div class="page-box">
-    <h2>Confirm Your Order</h2>
+<body>
 
-    <!-- Display Cart Items -->
-    <ul style="color:white; font-size: 1.1rem;">
-      {% for item in items %}
-        <li>{{ item.quantity }} x {{ item.item }} ({{ item.weight }}g)</li>
-      {% endfor %}
-    </ul>
+  <h2>Confirm Your Order</h2>
+  <form method="POST" action="{{ url_for('order') }}">
+    <label for="address">Delivery Address:</label>
+    <textarea name="address" id="address" rows="4" required></textarea>
 
-    <!-- Order Form -->
-    <form method="POST">
-      <h3 style="color:#ffcc66;">Delivery Address</h3>
-      <textarea name="address" required placeholder="Enter your delivery address here..." rows="4"
-                style="width: 100%; border-radius: 6px; padding: 10px;"></textarea>
+    <label>Payment Method:</label>
+    <div class="readonly-option">Cash on Delivery (COD)</div>
 
-      <br><br>
-      <p style="color:white;"><strong>Payment Method:</strong> Cash on Delivery</p>
-      <button type="submit" class="btn">Confirm Order</button>
-    </form>
-  </div>
+    <button type="submit">Place Order</button>
+  </form>
+
 </body>
 </html>

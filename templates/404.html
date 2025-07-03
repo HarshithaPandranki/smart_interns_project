@@ -1,14 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>404 - Page Not Found</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <title>Page Not Found</title>
+  <style>
+    body {
+      background-color: #fff3cd;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 100px;
+    }
+    h1 {
+      font-size: 72px;
+      color: #856404;
+    }
+    p {
+      font-size: 24px;
+      color: #856404;
+    }
+    a {
+      text-decoration: none;
+      color: #fff;
+      background-color: #ffa500;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
-<body class="page-container">
-  <div class="page-box" style="text-align:center;">
-    <h2>Oops! Page Not Found</h2>
-    <p>The page you're looking for doesn't exist.</p>
-    <a href="{{ url_for('home') if is_logged_in else url_for('welcome') }}" class="btn">Go Home</a>
-  </div>
+<body>
+  <h1>404</h1>
+  <p>Oops! Page not found.</p>
+  <a href="{{ url_for('welcome') }}">Back to Welcome</a>
 </body>
 </html>

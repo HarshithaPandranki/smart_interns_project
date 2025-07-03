@@ -1,15 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Contact Us</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Contact Us | MOMade Pickles</title>
+  <style>
+    body {
+      background-color: #fffaf0;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 600px;
+      margin: 50px auto;
+      background: #fff3cd;
+      padding: 30px;
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+    button {
+      background-color: #ffa500;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="page-container">
-  <div class="page-box">
+<body>
+  <div class="container">
     <h2>Contact Us</h2>
-    <p><strong>📞 Phone:</strong> +91 98765 43210</p>
-    <p><strong>📧 Email:</strong> momadepickles@example.com</p>
-    <p><strong>🏠 Address:</strong> 123 Homemade Street, Pickletown, Andhra Pradesh, India</p>
+    <p><strong>Phone:</strong> +91 9876543210</p>
+    <p><strong>Email:</strong> momadepickles@example.com</p>
+    <p><strong>Address:</strong> #45, Andhra Homes, Vijayawada, AP - 520010</p>
+
+    <form>
+      <h3>Send us a message</h3>
+      <input type="text" placeholder="Your Name" required>
+      <input type="email" placeholder="Your Email" required>
+      <textarea rows="4" placeholder="Your Message" required></textarea>
+      <button type="submit">Send</button>
+    </form>
   </div>
 </body>
 </html>
